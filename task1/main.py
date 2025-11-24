@@ -66,7 +66,7 @@ def create_tables_and_insert_data(data):
                     select 
                         year,
                         count(id),
-                        avg(price_formated)
+                        round(avg(price_formated), 2)
                     from final_prices
                     group by year
                 );
