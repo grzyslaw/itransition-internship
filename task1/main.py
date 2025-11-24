@@ -36,7 +36,7 @@ def create_tables_and_insert_data(data):
                 create table summary (
                     publication_year numeric(4) primary key,
                     book_count numeric,
-                    avarage_price_usd numeric(3,2)
+                    avarage_price_usd numeric
                 );
                 """
             )
