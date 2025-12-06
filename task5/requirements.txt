@@ -1,0 +1,7 @@
+outlier-utils
+pandas
+numpy
+matplotlib
+outlier-utils
+io
+dotenv
