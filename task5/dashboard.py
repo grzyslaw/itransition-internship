@@ -203,7 +203,9 @@ def render_report_config_and_button(analyzer: MineStatsAnalyzer, df: pd.DataFram
 
 def main():
     load_dotenv()
-    df = get_data(os.getenv('SHEETS_LINK'))
+    sheets_link = os.getenv('SHEETS_LINK')
+    print(sheets_link)
+    df = get_data(sheets_link)
     analyzer = MineStatsAnalyzer(df)
 
     st.title("Weyland-Yutani Corporation mines dashboard")
