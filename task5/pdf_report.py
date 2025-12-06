@@ -101,6 +101,67 @@ def generate_anomaly_details_page(
 
     return pages
 
+def generate_welcome_page(
+    iqr_params: dict,
+    z_params: dict,
+    ma_params: dict,
+    grubbs_params: dict,
+    chart_type: str,
+    trend_degree: int | None,
+):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.axis("off")
+
+    trend_text = "none" if not trend_degree else f"degree {trend_degree}"
+
+    text = f"""
+            Weyland-Yutani Corporation
+            Mine Output Anomaly Analysis Report
+
+            Overview
+            This report presents an automated statistical analysis of daily production values
+            from multiple mining facilities. The goal is to identify irregularities, spikes,
+            drops, and other anomalies using several statistical detection methods.
+
+            Anomaly Detection Methods
+            - Interquartile Range (IQR Rule):
+            Values outside [Q1 - k·IQR, Q3 + k·IQR] are flagged as outliers.
+
+            - Z-score Thresholding:
+            Values with |z| above a chosen threshold are flagged as outliers.
+
+            - Deviation from 7-Day Moving Average:
+            The 7-day moving average is used as a baseline; points with large relative
+            deviation are treated as anomalies.
+
+            - Grubbs' Test:
+            Iterative statistical test for detecting outliers in normally distributed data.
+
+            Current Parameter Settings
+            - IQR: k = {iqr_params.get('bound_modifier')}
+            - Z-score: threshold = {z_params.get('treshold')}
+            - Moving average:
+                window = {ma_params.get('window')} days,
+                distance = {ma_params.get('distance_percent_treshold')}
+            - Grubbs:
+                alpha = {grubbs_params.get('alpha')},
+                side = {grubbs_params.get('side')}
+            - Charts:
+                type = {chart_type},
+                trendline = {trend_text}
+
+            Report Structure
+            1. Welcome / Overview (this page)
+            2. Summary page with descriptive statistics and total anomalies per method
+            3. Per-mine overview pages with stats and anomaly counts
+            4. Method-specific charts for each mine, with highlighted anomalies and trendlines
+            5. Detailed anomaly tables listing spikes and drops per mine and method
+    """
+
+    ax.text(0.5,0.5,text, va="center", ha="center", wrap=True, fontsize=11)
+
+    return fig
+
 def generate_mine_method_chart_page(
     df: pd.DataFrame, 
     outliers_df: pd.DataFrame, 
@@ -139,6 +200,17 @@ def generate_pdf_report(
 
     buffer = io.BytesIO()
     with PdfPages(buffer) as pdf:
+        fig = generate_welcome_page(
+            iqr_params=iqr_params,
+            z_params=z_params,
+            ma_params=ma_params,
+            grubbs_params=grubbs_params,
+            chart_type=chart_type,
+            trend_degree=trend_degree,
+        )
+        pdf.savefig(fig)
+        plt.close(fig)
+
         fig = generate_summary_page(analyzer, outliers_by_method)
         pdf.savefig(fig)
         plt.close(fig)

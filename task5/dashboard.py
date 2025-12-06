@@ -201,6 +201,84 @@ def render_report_config_and_button(analyzer: MineStatsAnalyzer, df: pd.DataFram
                 mime="application/pdf",
             )
 
+import streamlit as st
+
+def render_dashboard_intro():
+    with st.expander("ℹ️ What this dashboard shows and how to read it"):
+        st.markdown("### Overview")
+        st.markdown(
+            """
+            This dashboard analyzes **daily mine output** and highlights potential **anomalies**.
+
+            For each mine you can:
+            - see descriptive statistics (mean, std, median, IQR),
+            - select an **outlier detection method**,
+            - tune its **parameters**,
+            - and view charts with highlighted anomalies and optional trendlines.
+            """
+            )
+
+        st.markdown("---")
+        st.markdown("### Outlier detection methods")
+
+        # --- IQR ---
+        st.markdown("**1. IQR Rule**")
+        st.markdown("Flags values outside the interval:")
+        st.latex(r"[Q1 - k \cdot IQR,\; Q3 + k \cdot IQR]")
+        st.latex(r"IQR = Q3 - Q1")
+        st.markdown("- Parameter: `IQR bound modifier` *(k)* – typical default: `1.5`")
+
+        st.markdown("---")
+
+        # --- Z-score ---
+        st.markdown("**2. Z-score**")
+        st.markdown("Standardized distance from the mean:")
+        st.latex(r"z = \frac{x - \mu}{\sigma}")
+        st.markdown("- Parameter: `Z-score threshold` – e.g. `2.0` (moderate), `3.0` (conservative).")
+
+        st.markdown("---")
+
+        # --- Moving average ---
+        st.markdown("**3. Moving Average deviation**")
+        st.markdown("Uses a rolling 7-day moving average as baseline and measures relative deviation:")
+        st.latex(r"\text{deviation}_t = \frac{|x_t - MA_7(t)|}{MA_7(t)}")
+        st.markdown(
+            "- Parameters:\n"
+            "  - `Moving average window (days)` – typically `7`\n"
+            "  - `Distance from MA (fraction)` – e.g. `0.15` = 15% deviation"
+        )
+
+        st.markdown("---")
+
+        # --- Grubbs ---
+        st.markdown("**4. Grubbs' Test**")
+        st.markdown(
+            "Statistical test for detecting outliers in (approximately) normally distributed data.\n"
+            "- Parameters:\n"
+            "  - `Alpha (significance level)` – e.g. `0.05`\n"
+            "  - `Side` – `\"max\"`, `\"min\"`, or `\"both\"`"
+        )
+
+        st.markdown("---")
+        st.markdown("### Charts")
+
+        st.markdown(
+            """
+            - **Chart type**:
+                - `line` – time series with anomaly markers  
+                - `bar` – bar chart per day with highlighted anomalies  
+                - `stacked` – uses **7-day moving average** as baseline; for spike outliers:
+                    - baseline = MA₇  
+                    - spike component = value − MA₇  
+                Drops are drawn as outlined bars.
+
+            - **Trend degree**:
+                - Polynomial trendline fitted to the selected mine's data.  
+                - `0` = no trendline, `1–4` = polynomial degree.
+            """
+        )
+
+
 def main():
     load_dotenv()
     sheets_link = os.getenv('SHEETS_LINK')
@@ -210,6 +288,7 @@ def main():
     analyzer = MineStatsAnalyzer(df)
 
     st.title("Weyland-Yutani Corporation mines dashboard")
+    render_dashboard_intro()
     if st.button("🔄 Refresh"):
         st.rerun()
     st.subheader("Descriptive Statistics")
