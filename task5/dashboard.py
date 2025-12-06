@@ -204,7 +204,8 @@ def render_report_config_and_button(analyzer: MineStatsAnalyzer, df: pd.DataFram
 def main():
     load_dotenv()
     sheets_link = os.getenv('SHEETS_LINK')
-    print(sheets_link)
+    if not sheets_link:
+        raise RuntimeError("SHEETS_LINK env var not set")
     df = get_data(sheets_link)
     analyzer = MineStatsAnalyzer(df)
 
